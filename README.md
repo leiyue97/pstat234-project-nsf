@@ -2,7 +2,7 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/leiyue97/pstat234-project-nsf/main)
 
 - Our group project is **Reproducibility of Exit Poll Data in 2020 Presidential Election**
-- Group members are Caroline Zhang, Lei Yue, Jacqueline Zawada
+- Group members are Caroline Zhang, Lei Yue, and Jacqueline Zawada
 - We all use R for data analysis
 
 ## Reproducible File Package
