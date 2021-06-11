@@ -8,11 +8,14 @@
 ## Reproducible File Package
 
 The reproducible file package includes:
-1. written report: **
-2. rmarkdown code for reproducing the project: 
-3. ANES 2020 data
-      * google drive link: https://drive.google.com/file/d/19Mqkb6iLPsYFiWvwV9IxrxHRtZ_oErId/view?usp=sharing
-5. ANES 2020 codebooke: *anes_timeseries_2020_userguidecodebook_20210324.pdf*
+
+1. written report: 
+     * 
+3. rmarkdown code for reproducing the project: 
+4. ANES 2020 data
+     * google drive link: https://drive.google.com/file/d/19Mqkb6iLPsYFiWvwV9IxrxHRtZ_oErId/view?usp=sharing
+6. ANES 2020 codebooke: 
+     * *anes_timeseries_2020_userguidecodebook_20210324.pdf*
 
 ## Presentation
 
