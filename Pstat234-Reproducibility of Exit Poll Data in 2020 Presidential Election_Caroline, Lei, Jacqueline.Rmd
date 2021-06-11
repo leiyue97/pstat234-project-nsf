@@ -1,0 +1,496 @@
+---
+title: "Reproducibility of Exit Poll Data in 2020 Presidential Election"
+author: "Caroline Z, Lei Y, Jacqueline Z"
+date: "Spring 2021 `r format(Sys.Date(), '%B %d, %Y')`"
+output: 
+  pdf_document: 
+    latex_engine: xelatex
+    toc: True
+    toc_depth: 3
+  html_document: default
+graphics: yes
+---
+  
+  
+```{r setup, echo=FALSE, warning=FALSE,message=FALSE}
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(haven)
+knitr::opts_chunk$set()
+```
+
+
+\newpage
+
+```{r, include=FALSE}
+df = read_dta("anes_timeseries_2020_stata_20210324.dta")
+```
+
+# 1. Data
+
+The data we use is the survey data, the ANES (American National Election Study) 2020 Time Series Study. 
+
+ANES 2020 consists of two parts, one pre-election survey and post-election survey. Pre-election interviews began in August 2020 and continued until Election Day, Tuesday (November 3). Post-election interviews began soon after the election and continued through the end of December. The ANES 2020 surveys both a panel sample and a fresh cross-sectional sample, asking various questions on participation in election, voting experiences, coronavirus pandemic, corruption, impeachment, immigration, anti-elitism, faith in experts or science, and many different aspects. In total, there are 8280 subjects who answer the ANES 2020.
+
+
+# 2. 2016 Election v.s. 2020 Election
+
+Comparing the presidential election results in 2016 and 2020, the electoral vote count from 2016 to 2020 basically flipped. Why did this happen？ More importantly, why did Trump lose? 
+
+
+## Question 1: Why did Trump lose 2020 Presidential Election? Who voted for Trump in 2016 but voted for Biden in 2020?
+
+Those who voted for Trump in 2016 but voted for Biden in 2020 are called "switchers".
+
+```{r switcher, warning=FALSE,message=FALSE, echo=FALSE}
+# vote_DT (Election Nov 3rd)
+df$vote_DT="NA"
+df$vote_DT[df$V202073==1]=0 # Trump
+df$vote_DT[df$V202073==2]=1 # Biden
+df$vote_DT=as.numeric(df$vote_DT)
+
+df_switch = df %>%
+  filter(V201103==2 & vote_DT==0) %>% # V201103: 2=DT 1=HC
+  filter(V201511x<=5 & V201511x>=1) %>% # education
+  filter(V201549x<=5 & V201549x>=1) %>% # race
+  filter(V201617x>=1 & V201617x<=22) %>% # income
+  mutate(edu=V201511x,race=V201549x,income=V201617x) %>%
+  select(edu,race,income)
+```
+
+### Education
+
+```{r switch.edu, warning=FALSE,message=FALSE, echo=FALSE}
+ggplot(data=df_switch, aes(x=edu,fill=factor(edu))) +
+  geom_bar() +
+  theme_classic() +
+  labs(x="education level", title= "Education of Switchers", fill ="", y="number") +
+  theme(legend.position="bottom", axis.text=element_text(size=8), legend.text=element_text(size=10)) +
+  scale_x_discrete(limits=c("Less Than High School","High School","Some College Or Associate","Bachelor","Graduate or Above"))+
+  guides(fill=FALSE)+
+  coord_flip()
+```
+
+People with some college and above education are much more likely to switch in the two back-to-back elections.
+
+### Race
+
+```{r switch.race, warning=FALSE,message=FALSE, echo=FALSE}
+ggplot(data=df_switch, aes(x=race,fill=factor(race))) +
+  geom_bar() +
+  theme_classic() +
+  labs(x="race", title= "Race of Switchers", fill ="", y="number") +
+  theme(legend.position="bottom", axis.text=element_text(size=8), legend.text=element_text(size=10)) +
+  scale_x_discrete(limits=c("White","Black","Hispanic","Asian","Native"))+
+  guides(fill=FALSE)+
+  coord_flip()
+```
+In particular, when it comes to race, white people are significantly more likely to switch than others. It makes sense since the proportion of white people in the United States is large.
+
+
+### Income
+
+```{r switch.income, warning=FALSE,message=FALSE, echo=FALSE}
+ggplot(data=df_switch, aes(x=income,fill=factor(income))) +
+  geom_bar() +
+  theme_classic() +
+  labs(x="income level", title= "Income of Switchers", fill ="", y="number") +
+  theme(legend.position="bottom", axis.text=element_text(size=8), legend.text=element_text(size=10)) +
+  scale_x_discrete(limits=c("Under $9,999","$10,000-14,999","$15,000-19,999","$20,000-24,999",
+                            "$25,000-29,999","$30,000-34,999","$35,000-39,999", 
+                            "$40,000-44,999", "$45,000-49,999","$50,000-59,999","$60,000-64,999",
+                            "$65,000-69,999","$70,000-74,999","$75,000-79,999",
+                            "$80,000-89,999","$90,000-99,999","$100,000-109,999",
+                            "$110,000-124,999","$125,000-149,999","$150,000-174,999",
+                            "$175,000-249,999","$250,000 or more"))+
+  guides(fill=FALSE)+
+  coord_flip()
+```
+
+Switchers from Trump to Biden almost across all income groups, and no particular pattern is found.
+
+
+## Question 2: Are there people who voted for Hillary Clinton in 2016 but voted for Trump in 2020?
+
+### Education
+
+```{r switcher2, warning=FALSE,message=FALSE, echo=FALSE}
+df_switch2 = df %>%
+  filter(V201103==1 & vote_DT==1) %>% # V201103: 2=DT 1=HC
+  filter(V201511x<=5 & V201511x>=1) %>% # education
+  filter(V201549x<=5 & V201549x>=1) %>% # race
+  filter(V201617x>=1 & V201617x<=22) %>% # income
+  mutate(edu=V201511x,race=V201549x,income=V201617x) %>%
+  select(edu,race,income)
+```
+
+```{r switch.edu2, warning=FALSE,message=FALSE, echo=FALSE}
+ggplot(data=df_switch2, aes(x=edu,fill=factor(edu))) +
+  geom_bar() +
+  theme_classic() +
+  labs(x="education level", title= "Education of Switchers (Hillary Cliton to Donald Trump)", fill ="", y="number") +
+  theme(legend.position="bottom", axis.text=element_text(size=8), legend.text=element_text(size=10)) +
+  scale_x_discrete(limits=c("Less Than High School","High School","Some College Or Associate","Bachelor","Graduate or Above"))+
+  guides(fill=FALSE)+
+  coord_flip()
+```
+
+On the other hand, it seems that people with some college or associate are more likely to switch from Clinton to Trump. Related to the previous comparison, we conclude that having some college education are likely to be switch their political supports during the two elections.
+
+### Race
+
+```{r switch.race2, warning=FALSE,message=FALSE, echo=FALSE}
+ggplot(data=df_switch2, aes(x=race,fill=factor(race))) +
+  geom_bar() +
+  theme_classic() +
+  labs(x="race", title= "Race of Switchers (Hillary Cliton to Donald Trump)", fill ="", y="number") +
+  theme(legend.position="bottom", axis.text=element_text(size=8), legend.text=element_text(size=10)) +
+  scale_x_discrete(limits=c("White","Black","Hispanic","Asian","Native"))+
+  guides(fill=FALSE)+
+  coord_flip()
+```
+
+The composition of two kinds of switchers seems to be very similar, but slightly higher proportion of non-white races.
+
+### Income
+
+
+```{r switch.income2, warning=FALSE,message=FALSE, echo=FALSE}
+ggplot(data=df_switch2, aes(x=income,fill=factor(income))) +
+  geom_bar() +
+  theme_classic() +
+  labs(x="income level", title= "Income of Switchers (Hillary Cliton to Donald Trump)", fill ="", y="number") +
+  theme(legend.position="bottom", axis.text=element_text(size=8), legend.text=element_text(size=10)) +
+  scale_x_discrete(limits=c("Under $9,999","$10,000-14,999","$15,000-19,999","$20,000-24,999","$25,000-29,999","$30,000-34,999","$35,000-39,999", 
+                            "$40,000-44,999", "$45,000-49,999","$50,000-59,999","$60,000-64,999","$65,000-69,999","$70,000-74,999","$75,000-79,999",
+                            "$80,000-89,999","$90,000-99,999","$100,000-109,999","$110,000-124,999","$125,000-149,999","$150,000-174,999",
+                            "$175,000-249,999","$250,000 or more"))+
+  guides(fill=FALSE)+
+  coord_flip()
+```
+
+
+For those who switched from Clinton to Trump in 2020 election, these people are more concentrated among higher income groups (i.e. equal and above $100k).
+
+## Question 3: Whether or not Trump is an important political asset for the republican party?
+
+To assess how satisfied are people in presidential candidates and political parties, there are questions from ANES 2020 that asking about feeling thermometers.
+
+- How would you rate Joe Biden (V201151)
+- How would you rate Donald Trump (V201152)
+- How would you rate the Democratic Party (V201156)
+- How would you rate the Republican Party (V201157)
+
+
+(1) Those who voted for Donald Trump in both 2016 and 2020 can be considered as loyal supporters. Do they support Trump firmly or truly believe in Republican party?
+
+```{r trump.rep, warning=FALSE,message=FALSE, echo=FALSE}
+# How would you rate Joe Biden V201151
+# How would you rate Donald Trump V201152
+# How would you rate the Democratic Party V201156
+# How would you rate the Republican Party V201157
+df_DTDT = df %>%
+  filter(V201103==2 & vote_DT==1) %>%
+  filter(V201152>=0 & V201152<=100) %>%
+  filter(V201157>=0 & V201157<=100) %>%
+  mutate(Trump_rate=V201152,Republican_rate=V201157) %>%
+  select(Trump_rate,Republican_rate)
+
+ggplot(data=df_DTDT, aes(x=Trump_rate, colour = "Trump Rate")) +
+  geom_density()+ 
+  geom_density(aes(x=Republican_rate, colour = "Republican Rate"))+
+  labs(x="Rate")+  
+  theme_classic() +
+  ggtitle("Rates of Loyal Trump Supporters (Trump v.s. Republican)")
+```
+
+
+As satisfactory rate is close to 100/100, more people are satisfied with Donald Trump than Republican party. In some way, it confirms that who voted for Trump twice firmly support Trump, not the republican party.
+
+(2) For those who voted for Donald Trump in 2016, but voted for Joe Biden in 2020, do they lose faith in Trump or Republican party?
+
+```{r trump.rep2, warning=FALSE,message=FALSE, echo=FALSE}
+# How would you rate Joe Biden V201151
+# How would you rate Donald Trump V201152
+# How would you rate the Democratic Party V201156
+# How would you rate the Republican Party V201157
+df_DTJB = df %>%
+  filter(V201103==2 & vote_DT==0) %>%
+  filter(V201152>=0 & V201152<=100) %>%
+  filter(V201157>=0 & V201157<=100) %>%
+  mutate(Trump_rate=V201152,Republican_rate=V201157) %>%
+  select(Trump_rate,Republican_rate)
+ggplot(data=df_DTJB, aes(x=Trump_rate, colour = "Trump Rate")) +
+  geom_density()+ 
+  geom_density(aes(x=Republican_rate, colour = "Republican Rate"))+
+  labs(x="Rate")+  
+  theme_classic() +
+  ggtitle("Rates of Switchers (Trump v.s. Republican)")
+```
+
+The average satisfactory rate of switchers who voted for Donald Trump in 2016 but voted for Joe Biden in 2020 is above 50, which is not very low. However, it is clearly that they are not satisfied with Trump. Losing faith in Trump is the main reason why those people voted for Joe Biden in 2020.
+
+
+(3) Those who voted for Joe Biden in 2020 and voted for Hillary Clinton in 2016 can be considered as loyal supporters of Demographic. Do they support Biden because of their faith in Demographic party?
+
+
+
+```{r biden.demo, warning=FALSE,message=FALSE, echo=FALSE}
+# How would you rate Joe Biden V201151
+# How would you rate Donald Trump V201152
+# How would you rate the Democratic Party V201156
+# How would you rate the Republican Party V201157
+df_HCJB = df %>%
+  filter(V201103==1 & vote_DT==0) %>%
+  filter(V201151>=0 & V201151<=100) %>%
+  filter(V201156>=0 & V201157<=100) %>%
+  mutate(Biden_rate=V201151,Demographic_rate=V201156) %>%
+  select(Biden_rate,Demographic_rate)
+ggplot(data=df_HCJB, aes(x=Biden_rate, colour = "Biden Rate")) +
+  geom_density()+ 
+  geom_density(aes(x=Demographic_rate, colour = "Demographic Rate"))+
+  labs(x="Rate")+  
+  theme_classic() +
+  ggtitle("Rates of Loyal Demographic Party Supporters (Biden v.s. Demographic)")
+```
+
+
+Overall, the distribution of satisfactory rate is similar between Biden and Demographic party. Biden could be a good representative of demographic party.
+
+
+
+(4)  For those who voted for Hillary Clinton in 2016, but voted for Donald Trump in 2020, do they lose faith in Demographic party?
+
+
+```{r biden.demo2, warning=FALSE,message=FALSE, echo=FALSE}
+# How would you rate Joe Biden V201151
+# How would you rate Donald Trump V201152
+# How would you rate the Democratic Party V201156
+# How would you rate the Republican Party V201157
+df_DTJB = df %>%
+  filter(V201103==2 & vote_DT==0) %>%
+  filter(V201151>=0 & V201151<=100) %>%
+  filter(V201156>=0 & V201157<=100) %>%
+  mutate(Biden_rate=V201151,Demographic_rate=V201156) %>%
+  select(Biden_rate,Demographic_rate)
+ggplot(data=df_DTJB, aes(x=Biden_rate, colour = "Biden Rate")) +
+  geom_density()+ 
+  geom_density(aes(x=Demographic_rate, colour = "Demographic Rate"))+
+  labs(x="Rate")+  
+  theme_classic() +
+  ggtitle("Rates of Switchers (Trump to Biden) (Biden v.s. Demographic)")
+```
+
+
+Unlike the switchers from Trump to Biden, the switchers from Hillary to Trump are pretty satisfied with Biden, but they are not satisfied with the Demographic party. Not trusting Demographic party could be the main reason why they switched.
+
+# 2. 2020 Election and Media:
+
+
+Before the election, Donald Trump "lost his voice" in social media platforms:
+
+- In May 26, 2020, Twitter fact checks Donald Trump for the first time
+- In January 2021, Mainstream social media bans or suspends Donald Trump’s social media
+
+Is not hearing from Trump the reason why people are not supporting him?
+
+In the survey, there is one question asking "Which social media platforms have you visited in the past year?". Seven social media platforms are mentioned, including Facebook, Twitter, Instagram, Reddit, YouTube, SnapChat, and TikTok. From this question, we can take a look at Trump supporters' usages of those social media platforms and Biden supporters' usages of those social media platforms.
+
+## Question: What social media platforms do Trump and Biden supporter use?
+
+```{r socialmedia, warning=FALSE,message=FALSE, echo=FALSE}
+df$socialmedia="NA"
+# 1 Facebook
+df$socialmedia[df$V202541a==1]=1
+# 2 Twitter
+df$socialmedia[df$V202541b==1]=2
+# 3 Instagram
+df$socialmedia[df$V202541c==1]=3
+# 4 Reddit
+df$socialmedia[df$V202541d==1]=4
+# 5 YouTube
+df$socialmedia[df$V202541e==1]=5
+# 6 SnapChat
+df$socialmedia[df$V202541f==1]=6
+# 7 TikTok
+df$socialmedia[df$V202541g==1]=7
+df$socialmedia=as.numeric(df$socialmedia)
+
+ggplot(data=df, aes(x=socialmedia, fill=factor(vote_DT))) +
+  geom_bar(position = "dodge") +
+  scale_fill_manual(values=c("#ff0803", "#0000ff")) + 
+  theme_classic() +
+  labs(x="social media platforms", title= "Social Media Use", fill ="", y="number") +
+  theme(legend.position="bottom", axis.text=element_text(size=8), legend.text=element_text(size=10)) +
+  scale_x_discrete(limits=c("Facebook", "Twitter", "Instagram","Reddit","YouTube", "SnapChat","TikTok"))+
+  guides(fill=FALSE)
+```
+
+
+For those individuals who responded to the survey, Trump supporters on average are more active on YouTube, SnapChat, and Tiktok, compared to Biden supporters. Even though Trump was very active on Twitter, Trump supporters do not usually visit Twitter.
+
+\newpage
+
+```{r include=FALSE}
+# DATA clean
+knitr::opts_chunk$set(fig.width=6, fig.height=4) # adjust figure size
+library(haven)
+library(tidyverse) 
+library(dplyr)
+data <- read_dta("anes_timeseries_2020_stata_20210324.dta")
+myvars <- c("V202073", "V201115", "V201116", "V201118","V201119","V201120"
+            ,"V201121", "V201239", "V201324", "V201325", "V201328")
+data_test <- data[myvars]
+
+data_test <- data_test %>% filter( data_test$V202073== 1 | data_test$V202073== 2)
+
+data_test$V202073 <- gsub('1', 'Joe Biden', data_test$V202073)
+data_test$V202073 <- gsub('2', 'Donald Trump', data_test$V202073)
+```
+
+
+# 3. 2020 Election and Ecnomoy
+
+In this section, we focus on the economy topic. Generally, exit polls show information about voters' attitude and what aspects affect their voting decision, which are quite board questions. The survey data ANES we have is a national election survey asking a smaller size of voters but with more narrow questions. Therefore, we would like to see whether we can support the results in exit poll with our survey data and does the survey data provide more info on voting decisions? \newline
+ \newline
+
+## Current Economy Condition
+
+For the economy part, the exit poll from the New York times has one related question: "Do you think the condition of the nation's economy is". Half of voters think that the condition is good while another half considers to be not so good. For those who voted for Biden, almost 78% of them are pessimistic about the current economy condition. However, Trump voters think positive about the economy going on. Is it still the case in our survey data? \newline
+ \newline
+ 
+```{r echo=FALSE, warning=FALSE}
+#V201115 Hope
+data1 <- data_test %>% filter( data_test$V201115 >0)
+
+library(ggplot2)
+p1 <- ggplot(data=data1, aes(x=V201115, fill = V202073)) +
+       geom_histogram(position = "fill", bins = 30, binwidth=0.5) +
+      scale_fill_manual(values=c("#ff0803", "#0000ff")) + theme_classic() +
+       labs(x="", title= " ", fill = "", y="") +
+      theme(legend.position="bottom", axis.text=element_text(size=4), legend.text=element_text(size=4)) +
+      scale_x_discrete(limits=c("Not at all","A little","Somewhat","Very","Extremely"))
+
+#V201119 happy
+data2 <- data_test %>% filter( data_test$V201119 >0)
+
+p2 <- ggplot(data=data2, aes(x=V201119, fill = V202073)) +
+  geom_histogram(position = "fill", bins = 30, binwidth=0.5) +
+  scale_fill_manual(values=c("#ff0803", "#0000ff")) + theme_classic() +
+  labs(x="", title= " ", fill = "", y="") +
+  theme(legend.position="bottom", axis.text=element_text(size=4), legend.text=element_text(size=4)) +
+  scale_x_discrete(limits=c("Not at all","A little","Somewhat","Very","Extremely"))
+
+
+#V201121 proud
+data3 <- data_test %>% filter( data_test$V201121 >0)
+
+p3 <- ggplot(data=data3, aes(x=V201121, fill = V202073)) +
+  geom_histogram(position = "fill", bins = 30, binwidth=0.5) +
+  scale_fill_manual(values=c("#ff0803", "#0000ff")) + theme_classic() +
+  labs(x="", title= " ", fill = "", y="") +
+  theme(legend.position="bottom", axis.text=element_text(size=4), legend.text=element_text(size=4)) +
+  scale_x_discrete(limits=c("Not at all","A little","Somewhat","Very","Extremely"))
+
+
+#V201116 afraid
+data4 <- data_test %>% filter( data_test$V201116 >0)
+
+p4 <- ggplot(data=data4, aes(x=V201116, fill = V202073)) +
+  geom_histogram(position = "fill", bins = 30, binwidth=0.5) +
+  scale_fill_manual(values=c("#ff0803", "#0000ff")) + theme_classic() +
+  labs(x="", title= " ", fill = "", y="") +
+  theme(legend.position="bottom", axis.text=element_text(size=4), legend.text=element_text(size=4)) +
+  scale_x_discrete(limits=c("Not at all","A little","Somewhat","Very","Extremely"))
+
+#V201118 angry
+data5 <- data_test %>% filter( data_test$V201118 >0)
+
+p5 <- ggplot(data=data5, aes(x=V201118, fill = V202073)) +
+  geom_histogram(position = "fill", bins = 30, binwidth=0.5) +
+  scale_fill_manual(values=c("#ff0803", "#0000ff")) + theme_classic() +
+  labs(x="", title= " ", fill = "", y="") +
+  theme(legend.position="bottom", axis.text=element_text(size=4), legend.text=element_text(size=4)) +
+  scale_x_discrete(limits=c("Not at all","A little","Somewhat","Very","Extremely"))
+
+#V201120 worried
+data6 <- data_test %>% filter( data_test$V201120 >0)
+
+p6 <- ggplot(data=data6, aes(x=V201120, fill = V202073)) +
+  geom_histogram(position = "fill", bins = 30, binwidth=0.5) +
+  scale_fill_manual(values=c("#ff0803", "#0000ff")) + theme_classic() +
+  labs(x="", title= " ", fill = "", y="") +
+  theme(legend.position="bottom", axis.text=element_text(size=4), legend.text=element_text(size=4)) +
+  scale_x_discrete(limits=c("Not at all","A little","Somewhat","Very","Extremely"))
+
+library(ggpubr)
+
+figure1 <- ggarrange(p1, p2, p1, p4, p5, p6,
+          labels = c("Hope", "Happy", "Proud", "Afraid", "Angry", "Worried"),
+          ncol = 3, nrow = 2)
+
+annotate_figure(figure1,
+                top = text_grob("How voters feel about how things are going in the country", color = "Black", face = "bold", size = 14))
+
+```
+ 
+Before answering this question, the survey data has a more general information on how voters feel about the things going on the country, not just about economy. As shown in the figure, voters for Trump are more likely to feel hope, happy, and proud about things going on the country, while voters for Biden are more likely to be afraid, angry and worried about the conditions in the country. Therefore, in general, voters for Trump are more optimistic about things in 2020 even though the covid happened.\newline
+ \newline
+ 
+ 
+Then let's look at the economy part. In our survey data, it not only has questions on the current economy condition, but also provides information on how voters feel like the economy in the past year and the next 12 months, which gives us an insight on whether people focus on the current condition or they vote based on past condition of the economy or the future. For the current economy, almost the same percentage of voters think either positive or negative about the current conditions, but the majority part of those who voted for Trump think the current economy condition is very good or good, while those who voted for Biden consider the condition bad or very bad, which kinda matches to the results in the exit poll.\newline
+ \newline
+ 
+```{r echo=FALSE, warning=FALSE}
+data8 <- data_test %>% filter( data_test$V201324 >0)
+
+ggplot(data=data8, aes(x=V201324, fill = V202073)) +
+  stat_count(width = 0.5,position="fill") +
+  scale_fill_manual(values=c("#ff0803", "#0000ff")) + theme_classic() +
+  labs(x="", title= "", fill = "", y="") + coord_flip() +
+  theme(legend.position="bottom", axis.text=element_text(size=12), legend.text=element_text(size=12)) +
+  scale_x_discrete(limits=c("1" = "Very Good", "2" = "Good","3" = "Neither good nor bad", "4" = "Bad", "5" = "Very Bad"))
+```
+ 
+## Past and Future Economy Conditions
+
+How about the past and the future economy conditions? In general, over a half voters think the condition on the national economy is worse compared to the last year, but we can still see from the survey data that voters for Trump think that the condition is better than last year. For the views on the economy condition in the next 12 months, a larger fraction of voters either for Trump or Biden think the condition will get better but still, voters for Trump are feeling more positive about the future economy condition.\newline
+ \newline
+
+```{r echo=FALSE, warning=FALSE}
+#V201325 National economy better or worse in last year
+#1. Gotten better
+#2. Stayed about the same
+#3. Gotten worse
+data9 <- data_test %>% filter( data_test$V201325 >0)
+ggplot(data=data9, aes(x=V201325, fill = V202073)) +
+  stat_count(width = 0.5,position="fill") +
+  scale_fill_manual(values=c("#ff0803", "#0000ff")) + theme_classic() +
+  labs(x="", title= "", fill = "", y="") + coord_flip() +
+  theme(legend.position="bottom", axis.text=element_text(size=12), legend.text=element_text(size=12)) +
+  scale_x_discrete(limits=c("1" = "Better", "2" = "Same","3" = "Worse"))
+```
+ 
+```{r echo=FALSE, warning=FALSE}
+ #V201328 Economy better or worse in next 12 months
+#1. Gotten better
+#2. Stayed about the same
+#3. Gotten worse
+
+data10 <- data_test %>% filter( data_test$V201328 >0)
+
+ggplot(data=data10, aes(x=V201328, fill = V202073)) +
+  stat_count(width = 0.5,position="fill") +
+  scale_fill_manual(values=c("#ff0803", "#0000ff")) + theme_classic() +
+  labs(x="", title= "", fill = "", y="") +coord_flip() +
+  theme(legend.position="bottom", axis.text=element_text(size=12), legend.text=element_text(size=12)) +
+  scale_x_discrete(limits=c("1" = "Better", "2" = "Same","3" = "Worse"))
+```
+ 
+
+In summary, our survey data supports the results in the exit poll that voters for Trump are more optimistic about the economy condition. And our survey data shows that they are not just positive about the current condition, but also think positively about the past and the future economy condition in the country. 
+
+\newpage
+
+# 4. 2020 Election and COVID-19
