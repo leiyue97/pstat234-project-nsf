@@ -10,9 +10,10 @@
 The reproducible file package includes:
 
 1. written report: 
-     * 
+     * *Pstat234-Reproducibility-of-Exit-Poll-Data-in-2020-Presidential-Election_Caroline,-Lei,-Jacqueline.pdf*
 3. rmarkdown code for reproducing the project: 
-4. ANES 2020 data
+     * *Pstat234-Reproducibility of Exit Poll Data in 2020 Presidential Election_Caroline, Lei, Jacqueline.Rmd*
+5. ANES 2020 data
      * google drive link: https://drive.google.com/file/d/19Mqkb6iLPsYFiWvwV9IxrxHRtZ_oErId/view?usp=sharing
 6. ANES 2020 codebooke: 
      * *anes_timeseries_2020_userguidecodebook_20210324.pdf*
